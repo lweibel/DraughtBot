@@ -10,10 +10,8 @@ import org10x10.dam.game.Move;
 
 /**
  * Implementation of the DraughtsPlayer interface.
- * @author huub
+ * @author Luca Weibel and Michiel Verburg
  */
-// ToDo: rename this class (and hence this file) to have a distinct name
-//       for your player during the tournament
 public class DraughtBot  extends DraughtsPlayer{
     private int bestValue=0;
     int maxSearchDepth;
@@ -22,7 +20,7 @@ public class DraughtBot  extends DraughtsPlayer{
     private boolean stopped;
 
     public DraughtBot(int maxSearchDepth) {
-        super("best.png"); // ToDo: replace with your own icon
+        super("best.png");
         this.maxSearchDepth = maxSearchDepth;
     }
     
