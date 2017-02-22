@@ -26,7 +26,6 @@ public class DraughtBot  extends DraughtsPlayer{
     }
     
     @Override public Move getMove(DraughtsState s) {
-        evaluate(s); //TODO: remove after testing done and move to correct location.
         Move bestMove = null;
         bestValue = 0;
         DraughtsNode node = new DraughtsNode(s);    // the root of the search tree
