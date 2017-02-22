@@ -2,6 +2,7 @@ package nl.tue.s2id90.group27;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.Integer.MIN_VALUE;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import nl.tue.s2id90.draughts.DraughtsState;
@@ -25,6 +26,7 @@ public class DraughtBot  extends DraughtsPlayer{
     }
     
     @Override public Move getMove(DraughtsState s) {
+        evaluate(s); //TODO: remove after testing done and move to correct location.
         Move bestMove = null;
         bestValue = 0;
         DraughtsNode node = new DraughtsNode(s);    // the root of the search tree
@@ -35,6 +37,7 @@ public class DraughtBot  extends DraughtsPlayer{
             // store the bestMove found uptill now
             // NB this is not done in case of an AIStoppedException in alphaBeat()
             bestMove  = node.getBestMove();
+            
             
             // print the results for debugging reasons
             System.err.format(
@@ -133,5 +136,25 @@ public class DraughtBot  extends DraughtsPlayer{
 
     /** A method that evaluates the given state. */
     // ToDo: write an appropriate evaluation function
-    int evaluate(DraughtsState state) { return 0; }
+    int evaluate(DraughtsState state) {
+        int[] pieces = state.getPieces(); //obtain pieces array
+        int color; //the color of checkers that the bot controls
+        int[] tileCounts = new int[4]; //for each i in this array, it contains the number
+        //of tiles that have the enum value i (e.g. int[0] indicates number of empty fields)
+        for (int i = 1; i <= 50; i++) {
+            int piece = pieces[i];
+            tileCounts[piece]++;
+        }
+        //System.err.println(Arrays.toString(tileCounts));
+        if (state.isWhiteToMove()) { //TODO: can't find better way to check what color the bot is, it must be somewhere
+            color = 1;
+            System.out.println("The bot has the white checkers");
+        } else {
+            color = 2;
+            System.out.println("The bot has the black checkers");
+        }
+        //for now not really taking the king into account, but a king could be heuristically worth 3 or so normal pieces
+        return tileCounts[color] + tileCounts[color+2]; //for white, color = 1, so 1+2=3 represents the whitekings
+        //and for black color=2, so 2+2=4 which is the value for black kings also
+    }
 }
