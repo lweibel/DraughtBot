@@ -36,8 +36,8 @@ public class DraughtBot extends DraughtsPlayer {
         DraughtsNode node = new DraughtsNode(s);    // the root of the search tree
         try {
             // compute bestMove and bestValue in a call to alphabeta
-            bestValue = alphaBeta(node, MIN_VALUE, MAX_VALUE, maxSearchDepth);
-            //TODO: I think above call will need to be replaced by call to iterative deepening, which then calls alphabeta 
+            bestValue = iterativeDeepening(node, MIN_VALUE, MAX_VALUE, maxSearchDepth);
+            // I think above call will need to be replaced by call to iterative deepening, which then calls alphabeta 
             //, of course it was not 100% necessary to make a new function for iterative deepening, but I just didn't want merge conflicts
 
             // store the bestMove found uptill now
@@ -142,7 +142,7 @@ public class DraughtBot extends DraughtsPlayer {
             throw new AIStoppedException();
         }
         DraughtsState state = node.getState();
-        if (depth == 0){
+        if (depth <= 0){
             return evaluate(state);
         }
         // set base value to be high because we are minimizing
@@ -173,7 +173,7 @@ public class DraughtBot extends DraughtsPlayer {
             throw new AIStoppedException();
         }
         DraughtsState state = node.getState();
-        if (depth == 0){
+        if (depth <= 0){
             return evaluate(state);
         }
         // set base value to be low because we are maximizing
@@ -204,7 +204,7 @@ public class DraughtBot extends DraughtsPlayer {
     int evaluate(DraughtsState state) {
         int[] pieces = state.getPieces(); //obtain pieces array
         int color; //the color of checkers that the bot controls
-        int[] tileCounts = new int[4]; //for each i in this array, it contains the number
+        int[] tileCounts = new int[5]; //for each i in this array, it contains the number
         //of tiles that have the enum value i (e.g. int[0] indicates number of empty fields)
         for (int i = 1; i <= 50; i++) {
             int piece = pieces[i];
