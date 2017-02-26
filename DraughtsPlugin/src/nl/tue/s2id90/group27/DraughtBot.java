@@ -210,16 +210,16 @@ public class DraughtBot extends DraughtsPlayer {
             int piece = pieces[i];
             tileCounts[piece]++;
         }
-        //System.err.println(Arrays.toString(tileCounts));
-        if (state.isWhiteToMove()) { //TODO: can't find better way to check what color the bot is, it must be somewhere
+        System.err.println(Arrays.toString(tileCounts));
+        if (state.isWhiteToMove()) {
             color = 1;
-            System.out.println("The bot has the white checkers");
+//            System.out.println("The bot has the white checkers");
         } else {
             color = 2;
-            System.out.println("The bot has the black checkers");
+//            System.out.println("The bot has the black checkers");
         }
-        //for now not really taking the king into account, but a king could be heuristically worth 3 or so normal pieces
-        return tileCounts[color] + tileCounts[color + 2]; //for white, color = 1, so 1+2=3 represents the whitekings
+        //3*no. of kings cuz king worth 3 pieces
+        return tileCounts[color] + 3*tileCounts[color + 2]; //for white, color = 1, so 1+2=3 represents the whitekings
         //and for black color=2, so 2+2=4 which is the value for black kings also
     }
 
