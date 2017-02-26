@@ -36,7 +36,7 @@ public class DraughtBot extends DraughtsPlayer {
         DraughtsNode node = new DraughtsNode(s);    // the root of the search tree
         try {
             // compute bestMove and bestValue in a call to alphabeta
-            bestValue = alphaBeta(node, MIN_VALUE, MAX_VALUE, maxSearchDepth); 
+            bestValue = alphaBeta(node, MIN_VALUE, MAX_VALUE, maxSearchDepth);
             //TODO: I think above call will need to be replaced by call to iterative deepening, which then calls alphabeta 
             //, of course it was not 100% necessary to make a new function for iterative deepening, but I just didn't want merge conflicts
 
@@ -74,7 +74,7 @@ public class DraughtBot extends DraughtsPlayer {
     /**
      * Tries to make alphabeta search stop. Search should be implemented such
      * that it throws an AIStoppedException when boolean stopped is set to true;
-    *
+     *
      */
     @Override
     public void stop() {
@@ -103,6 +103,7 @@ public class DraughtBot extends DraughtsPlayer {
      * @throws AIStoppedException
      *
      */
+    // TODO Do we need to check which color the bot is, or is it assumed that it is white?
     int alphaBeta(DraughtsNode node, int alpha, int beta, int depth)
             throws AIStoppedException {
         if (node.getState().isWhiteToMove()) {
@@ -141,10 +142,27 @@ public class DraughtBot extends DraughtsPlayer {
             throw new AIStoppedException();
         }
         DraughtsState state = node.getState();
-        // ToDo: write an alphabeta search to compute bestMove and value
-        Move bestMove = state.getMoves().get(0);
-        int value = 0;
-        node.setBestMove(bestMove);
+        if (depth == 0){
+            return evaluate(state);
+        }
+        // set base value to be high because we are minimizing
+        int value = Integer.MAX_VALUE / 2;
+        for (Move m : state.getMoves()) {
+            state.doMove(m);
+            // root: not sure if just can use node
+            DraughtsNode mNode = new DraughtsNode(state); 
+            // recursive call with depth one less
+            int mValue = alphaBeta(mNode, alpha, beta, depth - 1);
+            state.undoMove(m);
+            if (mValue < value){
+                value = mValue;
+                node.setBestMove(m);
+            }
+            beta = Math.min(beta, value);
+            if (beta <= alpha){
+                break;
+            }
+        }
         return value;
     }
 
@@ -155,10 +173,27 @@ public class DraughtBot extends DraughtsPlayer {
             throw new AIStoppedException();
         }
         DraughtsState state = node.getState();
-        // ToDo: write an alphabeta search to compute bestMove and value
-        Move bestMove = state.getMoves().get(0);
-        int value = 0;
-        node.setBestMove(bestMove);
+        if (depth == 0){
+            return evaluate(state);
+        }
+        // set base value to be low because we are maximizing
+        int value = -Integer.MAX_VALUE / 2;
+        for (Move m : state.getMoves()) {
+            state.doMove(m);
+            // root: not sure if just can use node
+            DraughtsNode mNode = new DraughtsNode(state);
+            // recursive call with depth one less
+            int mValue = alphaBeta(mNode, alpha, beta, depth - 1);
+            state.undoMove(m);
+            if (mValue > value){
+                value = mValue;
+                node.setBestMove(m);
+            }
+            alpha = Math.max(alpha, value);
+            if (beta <= alpha){
+                break;
+            }
+        }
         return value;
     }
 
