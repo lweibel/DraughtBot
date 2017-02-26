@@ -137,64 +137,60 @@ public class DraughtBot extends DraughtsPlayer {
      */
     int alphaBetaMin(DraughtsNode node, int alpha, int beta, int depth)
             throws AIStoppedException {
-        if (stopped) {
-            stopped = false;
-            throw new AIStoppedException();
-        }
-        DraughtsState state = node.getState();
-        if (depth <= 0){
-            return evaluate(state);
-        }
-        // set base value to be high because we are minimizing
-        int value = Integer.MAX_VALUE / 2;
-        for (Move m : state.getMoves()) {
-            state.doMove(m);
-            // root: not sure if just can use node
-            DraughtsNode mNode = new DraughtsNode(state); 
-            // recursive call with depth one less
-            int mValue = alphaBeta(mNode, alpha, beta, depth - 1);
-            state.undoMove(m);
-            if (mValue < value){
-                value = mValue;
-                node.setBestMove(m);
-            }
-            beta = Math.min(beta, value);
-            if (beta <= alpha){
-                break;
-            }
-        }
-        return value;
+        return combinedAlphaBetaMax(node, alpha, beta, depth, false);
     }
 
     int alphaBetaMax(DraughtsNode node, int alpha, int beta, int depth)
+            throws AIStoppedException {
+        return combinedAlphaBetaMax(node, alpha, beta, depth, true);
+    }
+
+    int combinedAlphaBetaMax(DraughtsNode node, int alpha, int beta, int depth, boolean isMaximizing)
             throws AIStoppedException {
         if (stopped) {
             stopped = false;
             throw new AIStoppedException();
         }
         DraughtsState state = node.getState();
-        if (depth <= 0){
+        if (depth <= 0 || state.isEndState()) {
             return evaluate(state);
         }
-        // set base value to be low because we are maximizing
-        int value = -Integer.MAX_VALUE / 2;
-        for (Move m : state.getMoves()) {
-            state.doMove(m);
-            // root: not sure if just can use node
-            DraughtsNode mNode = new DraughtsNode(state);
-            // recursive call with depth one less
-            int mValue = alphaBeta(mNode, alpha, beta, depth - 1);
-            state.undoMove(m);
-            if (mValue > value){
-                value = mValue;
-                node.setBestMove(m);
+        if (isMaximizing) {
+            int bestValue = -Integer.MAX_VALUE / 2;
+            for (Move m : state.getMoves()) {
+                state.doMove(m);
+                // root: not sure if just can use node
+                DraughtsNode mNode = new DraughtsNode(state);
+                int mValue = alphaBeta(mNode, alpha, beta, depth - 1);
+                state.undoMove(m);
+                if (mValue > bestValue) {
+                    bestValue = mValue;
+                    node.setBestMove(m);
+                }
+                alpha = Math.max(alpha, bestValue);
+                if (beta <= alpha) {
+                    break;
+                }
             }
-            alpha = Math.max(alpha, value);
-            if (beta <= alpha){
-                break;
+            return bestValue;
+        } else {
+            int bestValue = Integer.MAX_VALUE / 2;
+            for (Move m : state.getMoves()) {
+                state.doMove(m);
+                DraughtsNode mNode = new DraughtsNode(state);
+                int mValue = alphaBeta(mNode, alpha, beta, depth - 1);
+                state.undoMove(m);
+                if (mValue < bestValue) {
+                    bestValue = mValue;
+                    node.setBestMove(m);
+                }
+                beta = Math.min(beta, bestValue);
+                if (beta <= alpha) {
+                    break;
+                }
             }
+            return bestValue;
         }
-        return value;
     }
 
     /**
