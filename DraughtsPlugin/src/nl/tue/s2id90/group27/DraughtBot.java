@@ -161,14 +161,14 @@ public class DraughtBot extends DraughtsPlayer {
                 state.doMove(m);
                 // root: not sure if just can use node
                 DraughtsNode mNode = new DraughtsNode(state);
-                int mValue = alphaBeta(mNode, alpha, beta, depth - 1);
+                int mValue = alphaBetaMin(mNode, alpha, beta, depth - 1);
                 state.undoMove(m);
                 if (mValue > bestValue) {
                     bestValue = mValue;
                     node.setBestMove(m);
                 }
                 alpha = Math.max(alpha, bestValue);
-                if (beta <= alpha) {
+                if (alpha >= beta) {
                     break;
                 }
             }
@@ -178,14 +178,14 @@ public class DraughtBot extends DraughtsPlayer {
             for (Move m : state.getMoves()) {
                 state.doMove(m);
                 DraughtsNode mNode = new DraughtsNode(state);
-                int mValue = alphaBeta(mNode, alpha, beta, depth - 1);
+                int mValue = alphaBetaMax(mNode, alpha, beta, depth - 1);
                 state.undoMove(m);
                 if (mValue < bestValue) {
                     bestValue = mValue;
                     node.setBestMove(m);
                 }
                 beta = Math.min(beta, bestValue);
-                if (beta <= alpha) {
+                if (alpha >= beta) {
                     break;
                 }
             }
