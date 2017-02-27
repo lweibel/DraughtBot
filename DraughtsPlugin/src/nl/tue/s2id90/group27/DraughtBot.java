@@ -37,8 +37,6 @@ public class DraughtBot extends DraughtsPlayer {
         try {
             // compute bestMove and bestValue in a call to alphabeta
             bestValue = iterativeDeepening(node, MIN_VALUE, MAX_VALUE, maxSearchDepth);
-            // I think above call will need to be replaced by call to iterative deepening, which then calls alphabeta 
-            //, of course it was not 100% necessary to make a new function for iterative deepening, but I just didn't want merge conflicts
 
             // store the bestMove found uptill now
             // NB this is not done in case of an AIStoppedException in alphaBeat()
@@ -196,7 +194,6 @@ public class DraughtBot extends DraughtsPlayer {
     /**
      * A method that evaluates the given state.
      */
-    // ToDo: write an appropriate evaluation function
     int evaluate(DraughtsState state) {
         int[] pieces = state.getPieces(); //obtain pieces array
         int color; //the color of checkers that the bot controls
@@ -206,7 +203,7 @@ public class DraughtBot extends DraughtsPlayer {
             int piece = pieces[i];
             tileCounts[piece]++;
         }
-        System.err.println(Arrays.toString(tileCounts));
+//        System.err.println(Arrays.toString(tileCounts));
         if (state.isWhiteToMove()) {
             color = 1;
 //            System.out.println("The bot has the white checkers");
@@ -223,11 +220,12 @@ public class DraughtBot extends DraughtsPlayer {
      * A method implementing iterative deepening which then calls AlphaBeta
      */
     int iterativeDeepening(DraughtsNode node, int alpha, int beta, int maxDepth) throws AIStoppedException {
-        //TODO: not sure if there is another stopping condition (except of course for the exception), like in the slides it says until result found
-        //but is there ever really a 'result' found?
         int value = 0;
+        
+        //#TODO: right now iterative deepening seems to do double work, making it slow
         for (int depth = 1; depth <= maxDepth; depth++) { //iterative deepening starts at the lowest depth possible and then keeps increasing depth
             value = alphaBeta(node, alpha, beta, depth);
+            System.err.println("at depth: " + depth + " the best value is: " + value);
         }
         return value;
     }
