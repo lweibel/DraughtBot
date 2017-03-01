@@ -14,6 +14,7 @@ import org10x10.dam.game.Move;
 public class DraughtsNode {
     private final DraughtsState state;
     private Move move;
+    private Move[] moves = new Move[5];
     public DraughtsNode(DraughtsState s) {
         this.state = s;
     }
@@ -28,5 +29,13 @@ public class DraughtsNode {
     
     public Move getBestMove() {
         return move;
+    }
+    
+    public Move[] getBestMoves() {
+        return moves;
+    }
+    
+    public void setBestMoveDepth(Move m, int i) {
+        this.moves[i] = m;
     }
 }

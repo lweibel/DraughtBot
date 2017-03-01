@@ -2,6 +2,7 @@ package nl.tue.s2id90.group27;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.Integer.MIN_VALUE;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -162,6 +163,16 @@ public class DraughtBot extends DraughtsPlayer {
                 int mValue = alphaBetaMin(mNode, alpha, beta, depth - 1);
                 state.undoMove(m);
                 if (mValue > bestValue) {
+                    /** debugging info start **/
+                    if (depth > 1) {
+                        Move[] bests = mNode.getBestMoves();
+                        for (int i = 6 - depth; i < 5; i++) {
+                            node.setBestMoveDepth(bests[i], i);
+                        }
+                    }
+                    node.setBestMoveDepth(m, 5-depth);
+                    /** debugging info end **/
+
                     bestValue = mValue;
                     node.setBestMove(m);
                 }
@@ -179,6 +190,16 @@ public class DraughtBot extends DraughtsPlayer {
                 int mValue = alphaBetaMax(mNode, alpha, beta, depth - 1);
                 state.undoMove(m);
                 if (mValue < bestValue) {
+                    /** debugging info start **/
+                    if (depth > 1) {
+                        Move[] bests = mNode.getBestMoves();
+                        for (int i = 6 - depth; i < 5; i++) {
+                            node.setBestMoveDepth(bests[i], i);
+                        }
+                    }
+                    node.setBestMoveDepth(m, 5-depth);
+                    /** debugging info end **/
+                    
                     bestValue = mValue;
                     node.setBestMove(m);
                 }
@@ -196,24 +217,16 @@ public class DraughtBot extends DraughtsPlayer {
      */
     int evaluate(DraughtsState state) {
         int[] pieces = state.getPieces(); //obtain pieces array
-        int color; //the color of checkers that the bot controls
+        //int color; //the color of checkers that the bot controls
         int[] tileCounts = new int[5]; //for each i in this array, it contains the number
         //of tiles that have the enum value i (e.g. int[0] indicates number of empty fields)
         for (int i = 1; i <= 50; i++) {
             int piece = pieces[i];
             tileCounts[piece]++;
         }
-//        System.err.println(Arrays.toString(tileCounts));
-        if (state.isWhiteToMove()) {
-            color = 1;
-//            System.out.println("The bot has the white checkers");
-        } else {
-            color = 2;
-//            System.out.println("The bot has the black checkers");
-        }
+
         //3*no. of kings cuz king worth 3 pieces
-        return tileCounts[color] + 3*tileCounts[color + 2]; //for white, color = 1, so 1+2=3 represents the whitekings
-        //and for black color=2, so 2+2=4 which is the value for black kings also
+        return (tileCounts[1] + 3 * tileCounts[3]) - (tileCounts[2] + 3 * tileCounts[4]);
     }
 
     /**
@@ -221,11 +234,12 @@ public class DraughtBot extends DraughtsPlayer {
      */
     int iterativeDeepening(DraughtsNode node, int alpha, int beta, int maxDepth) throws AIStoppedException {
         int value = 0;
-        
+
         //#TODO: right now iterative deepening seems to do double work, making it slow
         for (int depth = 1; depth <= maxDepth; depth++) { //iterative deepening starts at the lowest depth possible and then keeps increasing depth
             value = alphaBeta(node, alpha, beta, depth);
             System.err.println("at depth: " + depth + " the best value is: " + value);
+            System.err.println("bestMoves: " + Arrays.toString(node.getBestMoves()));
         }
         return value;
     }
