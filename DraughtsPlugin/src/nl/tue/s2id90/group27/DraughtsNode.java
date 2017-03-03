@@ -16,7 +16,8 @@ import org10x10.dam.game.Move;
  */
 public class DraughtsNode {
     private final DraughtsState state;
-    private Move move;
+    private Move move, bestMoveCurrentDepth;
+    private int bestValue;
     private Map<Integer, Move> moves = new HashMap<Integer, Move>();
     public DraughtsNode(DraughtsState s) {
         this.state = s;
@@ -32,6 +33,22 @@ public class DraughtsNode {
     
     public Move getBestMove() {
         return move;
+    }
+    
+    public void setBestMoveCurrentDepth(Move m) {
+        this.bestMoveCurrentDepth = m;
+    }
+    
+    public Move getBestMoveCurrentDepth() {
+        return this.bestMoveCurrentDepth;
+    }
+    
+    public void setBestValue(int value) {
+        this.bestValue = value;
+    }
+    
+    public int getBestValue() {
+        return this.bestValue;
     }
     
     public Map<Integer, Move> getBestMoves() {

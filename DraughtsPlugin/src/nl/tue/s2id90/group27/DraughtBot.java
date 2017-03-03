@@ -45,13 +45,14 @@ public class DraughtBot extends DraughtsPlayer {
             //bestMove = node.getBestMove();
 
             // print the results for debugging reasons
-            System.err.format(
+            
+        } catch (AIStoppedException ex) {
+            /* nothing to do */        }
+        
+        System.err.format(
                     "%s: depth= %2d, best move = %5s, value=%d\n",
                     this.getClass().getSimpleName(), maxSearchDepth, node.getBestMove(), bestValue
             );
-        } catch (AIStoppedException ex) {
-            /* nothing to do */        }
-
         if (node.getBestMove() == null) {
             System.err.println("no valid move found!");
             return getRandomValidMove(s);
@@ -174,7 +175,7 @@ public class DraughtBot extends DraughtsPlayer {
                     node.setBestMoveDepth(m, maxSearchDepth-depth);
                     /** debugging info end **/
                     bestValue = mValue;
-                    node.setBestMove(m);
+                    node.setBestMoveCurrentDepth(m);
                 }
                 alpha = Math.max(alpha, bestValue);
                 if (alpha >= beta) {
@@ -200,7 +201,7 @@ public class DraughtBot extends DraughtsPlayer {
                     node.setBestMoveDepth(m, maxSearchDepth-depth);
                     /** debugging info end **/
                     bestValue = mValue;
-                    node.setBestMove(m);
+                    node.setBestMoveCurrentDepth(m);
                 }
                 beta = Math.min(beta, bestValue);
                 if (alpha >= beta) {
@@ -239,6 +240,7 @@ public class DraughtBot extends DraughtsPlayer {
             value = alphaBeta(node, alpha, beta, depth);
             System.err.println("at depth: " + depth + " the best value is: " + value);
             System.err.println("bestMoves: " + node.getBestMoves());
+            node.setBestMove(node.getBestMoveCurrentDepth());
         }
         return value;
     }
