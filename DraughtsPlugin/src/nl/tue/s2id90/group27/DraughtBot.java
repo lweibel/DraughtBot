@@ -33,7 +33,7 @@ public class DraughtBot extends DraughtsPlayer {
 
     @Override
     public Move getMove(DraughtsState s) {
-        Move bestMove = null;
+        //Move bestMove = null;
         bestValue = 0;
         DraughtsNode node = new DraughtsNode(s);    // the root of the search tree
         try {
@@ -42,21 +42,21 @@ public class DraughtBot extends DraughtsPlayer {
 
             // store the bestMove found uptill now
             // NB this is not done in case of an AIStoppedException in alphaBeat()
-            bestMove = node.getBestMove();
+            //bestMove = node.getBestMove();
 
             // print the results for debugging reasons
             System.err.format(
                     "%s: depth= %2d, best move = %5s, value=%d\n",
-                    this.getClass().getSimpleName(), maxSearchDepth, bestMove, bestValue
+                    this.getClass().getSimpleName(), maxSearchDepth, node.getBestMove(), bestValue
             );
         } catch (AIStoppedException ex) {
             /* nothing to do */        }
 
-        if (bestMove == null) {
+        if (node.getBestMove() == null) {
             System.err.println("no valid move found!");
             return getRandomValidMove(s);
         } else {
-            return bestMove;
+            return node.getBestMove();
         }
     }
 
@@ -173,7 +173,6 @@ public class DraughtBot extends DraughtsPlayer {
                     }
                     node.setBestMoveDepth(m, maxSearchDepth-depth);
                     /** debugging info end **/
-
                     bestValue = mValue;
                     node.setBestMove(m);
                 }
@@ -200,7 +199,6 @@ public class DraughtBot extends DraughtsPlayer {
                     }
                     node.setBestMoveDepth(m, maxSearchDepth-depth);
                     /** debugging info end **/
-                    
                     bestValue = mValue;
                     node.setBestMove(m);
                 }
