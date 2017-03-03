@@ -1,5 +1,8 @@
 package nl.tue.s2id90.group27;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import nl.tue.s2id90.draughts.DraughtsState;
 import org10x10.dam.game.Move;
 
@@ -14,7 +17,7 @@ import org10x10.dam.game.Move;
 public class DraughtsNode {
     private final DraughtsState state;
     private Move move;
-    private Move[] moves = new Move[5];
+    private Map<Integer, Move> moves = new HashMap<Integer, Move>();
     public DraughtsNode(DraughtsState s) {
         this.state = s;
     }
@@ -31,11 +34,11 @@ public class DraughtsNode {
         return move;
     }
     
-    public Move[] getBestMoves() {
+    public Map<Integer, Move> getBestMoves() {
         return moves;
     }
     
     public void setBestMoveDepth(Move m, int i) {
-        this.moves[i] = m;
+        this.moves.put(i, m);
     }
 }

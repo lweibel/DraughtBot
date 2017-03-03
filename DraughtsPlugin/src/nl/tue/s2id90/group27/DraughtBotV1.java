@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import nl.tue.s2id90.draughts.DraughtsState;
 import nl.tue.s2id90.draughts.player.DraughtsPlayer;
 import org10x10.dam.game.Move;
@@ -165,12 +166,12 @@ public class DraughtBotV1 extends DraughtsPlayer {
                 if (mValue > bestValue) {
                     /** debugging info start **/
                     if (depth > 1) {
-                        Move[] bests = mNode.getBestMoves();
-                        for (int i = 6 - depth; i < 5; i++) {
-                            node.setBestMoveDepth(bests[i], i);
+                        Map<Integer, Move> bests = mNode.getBestMoves();
+                        for (int i = (maxSearchDepth + 1) - depth; i < maxSearchDepth; i++) {
+                            node.setBestMoveDepth(bests.get(i), i);
                         }
                     }
-                    node.setBestMoveDepth(m, 5-depth);
+                    node.setBestMoveDepth(m, maxSearchDepth-depth);
                     /** debugging info end **/
 
                     bestValue = mValue;
@@ -192,12 +193,12 @@ public class DraughtBotV1 extends DraughtsPlayer {
                 if (mValue < bestValue) {
                     /** debugging info start **/
                     if (depth > 1) {
-                        Move[] bests = mNode.getBestMoves();
-                        for (int i = 6 - depth; i < 5; i++) {
-                            node.setBestMoveDepth(bests[i], i);
+                        Map<Integer, Move> bests = mNode.getBestMoves();
+                        for (int i = (maxSearchDepth + 1) - depth; i < maxSearchDepth; i++) {
+                            node.setBestMoveDepth(bests.get(i), i);
                         }
                     }
-                    node.setBestMoveDepth(m, 5-depth);
+                    node.setBestMoveDepth(m, maxSearchDepth-depth);
                     /** debugging info end **/
                     
                     bestValue = mValue;
@@ -239,7 +240,7 @@ public class DraughtBotV1 extends DraughtsPlayer {
         for (int depth = 1; depth <= maxDepth; depth++) { //iterative deepening starts at the lowest depth possible and then keeps increasing depth
             value = alphaBeta(node, alpha, beta, depth);
             System.err.println("at depth: " + depth + " the best value is: " + value);
-            System.err.println("bestMoves: " + Arrays.toString(node.getBestMoves()));
+            System.err.println("bestMoves: " + node.getBestMoves().values());
         }
         return value;
     }
