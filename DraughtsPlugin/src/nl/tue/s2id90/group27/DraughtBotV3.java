@@ -13,10 +13,10 @@ import org10x10.dam.game.Move;
 
 /**
  * Implementation of the DraughtsPlayer interface.
- *
+ * Now with best move ordering implemented
  * @author Luca Weibel and Michiel Verburg
  */
-public class DraughtBot extends DraughtsPlayer {
+public class DraughtBotV3 extends DraughtsPlayer {
 
     private int bestValue = 0;
     int maxSearchDepth;
@@ -26,7 +26,7 @@ public class DraughtBot extends DraughtsPlayer {
      */
     private boolean stopped;
 
-    public DraughtBot(int maxSearchDepth) {
+    public DraughtBotV3(int maxSearchDepth) {
         super("best.png");
         this.maxSearchDepth = maxSearchDepth;
     }
