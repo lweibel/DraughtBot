@@ -13,10 +13,10 @@ import org10x10.dam.game.Move;
 
 /**
  * Implementation of the DraughtsPlayer interface.
- * This version (V1) has all the basics implemented but with a fixed depth of 5
+ * This version (V2) now uses all time available for iterative deepening
  * @author Luca Weibel and Michiel Verburg
  */
-public class DraughtBotV1 extends DraughtsPlayer {
+public class DraughtBotV2 extends DraughtsPlayer {
 
     private int bestValue = 0;
     int maxSearchDepth;
@@ -26,14 +26,14 @@ public class DraughtBotV1 extends DraughtsPlayer {
      */
     private boolean stopped;
 
-    public DraughtBotV1(int maxSearchDepth) {
+    public DraughtBotV2(int maxSearchDepth) {
         super("best.png");
         this.maxSearchDepth = maxSearchDepth;
     }
 
     @Override
     public Move getMove(DraughtsState s) {
-        Move bestMove = null;
+        //Move bestMove = null;
         bestValue = 0;
         DraughtsNode node = new DraughtsNode(s);    // the root of the search tree
         try {
@@ -42,21 +42,22 @@ public class DraughtBotV1 extends DraughtsPlayer {
 
             // store the bestMove found uptill now
             // NB this is not done in case of an AIStoppedException in alphaBeat()
-            bestMove = node.getBestMove();
+            //bestMove = node.getBestMove();
 
             // print the results for debugging reasons
-            System.err.format(
-                    "%s: depth= %2d, best move = %5s, value=%d\n",
-                    this.getClass().getSimpleName(), maxSearchDepth, bestMove, bestValue
-            );
+            
         } catch (AIStoppedException ex) {
             /* nothing to do */        }
-
-        if (bestMove == null) {
+        
+        System.err.format(
+                    "%s: depth= %2d, best move = %5s, value=%d\n",
+                    this.getClass().getSimpleName(), maxSearchDepth, node.getBestMove(), bestValue
+            );
+        if (node.getBestMove() == null) {
             System.err.println("no valid move found!");
             return getRandomValidMove(s);
         } else {
-            return bestMove;
+            return node.getBestMove();
         }
     }
 
@@ -173,9 +174,8 @@ public class DraughtBotV1 extends DraughtsPlayer {
                     }
                     node.setBestMoveDepth(m, maxSearchDepth-depth);
                     /** debugging info end **/
-
                     bestValue = mValue;
-                    node.setBestMove(m);
+                    node.setBestMoveCurrentDepth(m);
                 }
                 alpha = Math.max(alpha, bestValue);
                 if (alpha >= beta) {
@@ -191,7 +191,7 @@ public class DraughtBotV1 extends DraughtsPlayer {
                 int mValue = alphaBetaMax(mNode, alpha, beta, depth - 1);
                 state.undoMove(m);
                 if (mValue < bestValue) {
-                    /** debugging info start **/
+                   /** debugging info start **/
                     if (depth > 1) {
                         Map<Integer, Move> bests = mNode.getBestMoves();
                         for (int i = (maxSearchDepth + 1) - depth; i < maxSearchDepth; i++) {
@@ -200,9 +200,8 @@ public class DraughtBotV1 extends DraughtsPlayer {
                     }
                     node.setBestMoveDepth(m, maxSearchDepth-depth);
                     /** debugging info end **/
-                    
                     bestValue = mValue;
-                    node.setBestMove(m);
+                    node.setBestMoveCurrentDepth(m);
                 }
                 beta = Math.min(beta, bestValue);
                 if (alpha >= beta) {
@@ -240,7 +239,8 @@ public class DraughtBotV1 extends DraughtsPlayer {
         for (int depth = 1; depth <= maxDepth; depth++) { //iterative deepening starts at the lowest depth possible and then keeps increasing depth
             value = alphaBeta(node, alpha, beta, depth);
             System.err.println("at depth: " + depth + " the best value is: " + value);
-            System.err.println("bestMoves: " + node.getBestMoves().values());
+            System.err.println("bestMoves: " + node.getBestMoves());
+            node.setBestMove(node.getBestMoveCurrentDepth());
         }
         return value;
     }
