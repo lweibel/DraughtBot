@@ -173,7 +173,9 @@ public class DraughtBot extends DraughtsPlayer {
             //System.out.println("Before sort: " + state.getMoves());
             movesToCheck = new ArrayList<>();
             movesToCheck.add(node.getBestMove());
-            for (Move m : state.getMoves()) {
+            List<Move> moves = state.getMoves();
+            Collections.shuffle(moves);
+            for (Move m : moves) {
                 if (!m.equals(node.getBestMove())) {
                     movesToCheck.add(m);
                 }
@@ -182,7 +184,6 @@ public class DraughtBot extends DraughtsPlayer {
         } else {
             movesToCheck = state.getMoves();
         }
-        Collections.shuffle(movesToCheck);
         // end of move ordering
         if (isMaximizing) {
             int bestValue = -Integer.MAX_VALUE / 2;
