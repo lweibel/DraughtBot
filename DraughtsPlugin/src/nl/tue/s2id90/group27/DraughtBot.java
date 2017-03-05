@@ -20,13 +20,23 @@ public class DraughtBot extends DraughtsPlayer {
 
     private int bestValue = 0;
     int maxSearchDepth;
-    
+
     final static int NRCOLUMNS = 5;
     final static int NRROWS = 10;
-    final static int KING = 3400; //value of king
+    final static int KING = 3000; //value of king
     final static int PIECE = 1000; //value of normal piece
-    final static int ROWMULTIPLIER =  200; //for taking tempi into account 
-    final static int DEFENSEBONUS = 1400; //bonus for leaving some at the first row
+    final static int ROWMULTIPLIER = 30; //for taking tempi into account
+    final static int CORNERBACKRANK = 150; //value for corner in the back, less valuable as others
+    final static int MIDDLEBACKRANK = 250; //value for middle in the backrank
+    final static int DOUBLECORNER = 75; //play from the double corner (e.g. field 45 and 50)
+    //if 1 piece on backrank, then middle pieces value 4, corner pieces value 2
+    // (47-49) = (47-49-50) - 2
+    // (47-48-49) = (47-49-50) = 47-48-49-50 - 2
+    // (47-48) = (47-48-49) - 4
+
+    final static int[] BACKRANK = {4, 12, 18, 20, 20}; //1 piece left to defend backrank (backrank does not include corner piece)
+    //then 4 points, all 4 pieces left to defend then 20 points.
+//    final static int DEFENSEBONUS = 1400; //bonus for leaving some at the first row
 
     /**
      * boolean that indicates that the GUI asked the player to stop thinking.
@@ -50,16 +60,17 @@ public class DraughtBot extends DraughtsPlayer {
             // store the bestMove found uptill now
             // NB this is not done in case of an AIStoppedException in alphaBeat()
             //bestMove = node.getBestMove();
-
             // print the results for debugging reasons
-            
         } catch (AIStoppedException ex) {
             /* nothing to do */        }
-        
+
+        if (bestValue == 0) {
+            bestValue = node.getBestValue();
+        }
         System.err.format(
-                    "%s: depth= %2d, best move = %5s, value=%d\n",
-                    this.getClass().getSimpleName(), maxSearchDepth, node.getBestMove(), bestValue
-            );
+                "%s: depth= %2d, best move = %5s, value=%d\n",
+                this.getClass().getSimpleName(), maxSearchDepth, node.getBestMove(), bestValue
+        );
         if (node.getBestMove() == null) {
             System.err.println("no valid move found!");
             return getRandomValidMove(s);
@@ -164,22 +175,22 @@ public class DraughtBot extends DraughtsPlayer {
             return evaluate(state);
         }
         // move ordering
-            List<Move> movesToCheck;
-            if (isFirstRun && node.getBestMove() != null){
-                
-                //System.out.println("Before sort: " + state.getMoves());
-                
-                movesToCheck = new ArrayList<>();
-                movesToCheck.add(node.getBestMove());
-                for (Move m : state.getMoves()){
-                    if (!m.equals(node.getBestMove())){
-                        movesToCheck.add(m);
-                    }
+        List<Move> movesToCheck;
+        if (isFirstRun && node.getBestMove() != null) {
+
+            //System.out.println("Before sort: " + state.getMoves());
+            movesToCheck = new ArrayList<>();
+            movesToCheck.add(node.getBestMove());
+            for (Move m : state.getMoves()) {
+                if (!m.equals(node.getBestMove())) {
+                    movesToCheck.add(m);
                 }
-                //System.out.println("After sort: " + movesToCheck);
-            } else {
-                movesToCheck = state.getMoves();
             }
+            //System.out.println("After sort: " + movesToCheck);
+        } else {
+            movesToCheck = state.getMoves();
+        }
+        Collections.shuffle(movesToCheck);
         // end of move ordering
         if (isMaximizing) {
             int bestValue = -Integer.MAX_VALUE / 2;
@@ -190,15 +201,19 @@ public class DraughtBot extends DraughtsPlayer {
                 int mValue = alphaBetaMin(mNode, alpha, beta, depth - 1, false);
                 state.undoMove(m);
                 if (mValue > bestValue) {
-                    /** debugging info start **/
+                    /**
+                     * debugging info start *
+                     */
                     if (depth > 1) {
                         Map<Integer, Move> bests = mNode.getBestMoves();
                         for (int i = (maxSearchDepth + 1) - depth; i < maxSearchDepth; i++) {
                             node.setBestMoveDepth(bests.get(i), i);
                         }
                     }
-                    node.setBestMoveDepth(m, maxSearchDepth-depth);
-                    /** debugging info end **/
+                    node.setBestMoveDepth(m, maxSearchDepth - depth);
+                    /**
+                     * debugging info end *
+                     */
                     bestValue = mValue;
                     node.setBestMoveCurrentDepth(m);
                 }
@@ -216,15 +231,19 @@ public class DraughtBot extends DraughtsPlayer {
                 int mValue = alphaBetaMax(mNode, alpha, beta, depth - 1, false);
                 state.undoMove(m);
                 if (mValue < bestValue) {
-                   /** debugging info start **/
+                    /**
+                     * debugging info start *
+                     */
                     if (depth > 1) {
                         Map<Integer, Move> bests = mNode.getBestMoves();
                         for (int i = (maxSearchDepth + 1) - depth; i < maxSearchDepth; i++) {
                             node.setBestMoveDepth(bests.get(i), i);
                         }
                     }
-                    node.setBestMoveDepth(m, maxSearchDepth-depth);
-                    /** debugging info end **/
+                    node.setBestMoveDepth(m, maxSearchDepth - depth);
+                    /**
+                     * debugging info end *
+                     */
                     bestValue = mValue;
                     node.setBestMoveCurrentDepth(m);
                 }
@@ -242,7 +261,7 @@ public class DraughtBot extends DraughtsPlayer {
      */
     int evaluate(DraughtsState state) {
         int[] pieces = state.getPieces(); //obtain pieces array
-        int whiteScore =0;
+        int whiteScore = 0;
         int blackScore = 0;
 //        int whiteCount = 0;
 //        int blackCount = 0;
@@ -251,7 +270,7 @@ public class DraughtBot extends DraughtsPlayer {
             if (piece == 1) {
                 whiteScore += positionalEvaluation(state, piece, i);
                 whiteScore += PIECE;
-            }  else if (piece == 3) {
+            } else if (piece == 3) {
                 whiteScore += KING;
             } else if (piece == 2) {
                 blackScore += positionalEvaluation(state, piece, i);
@@ -260,25 +279,27 @@ public class DraughtBot extends DraughtsPlayer {
                 blackScore += KING;
             }
         }
-        
+
         //#TODO: not sure if this difference is just for material difference or also positional/strategic
         int difference = whiteScore - blackScore; //we get the difference between the two,
         //so that we maximize whiteCount and minimize blackCount in order to get a higher value.
-        
-        /** normally returning the difference would seem
-         * enough, however, then sometimes arbitrary sacrifices are made (1 for 1 exchange) 
-         * where other choices could have been made that did not require such an exchange
-         * hence we also add the total count of white pieces to stress we want to
-         * preserve as many pieces as possible
-         **/
-        
+
+        /**
+         * normally returning the difference would seem enough, however, then
+         * sometimes arbitrary sacrifices are made (1 for 1 exchange) where
+         * other choices could have been made that did not require such an
+         * exchange hence we also add the total count of white pieces to stress
+         * we want to preserve as many pieces as possible
+         *
+         */
         //TODO: add "whiteCount +" to return statement
         //Currently does not seem to be an improvement probably due to implicit assumptions on 1 for 1 exchanges.
-        return  difference;
+        return difference;
     }
-    
+
     /**
      * A method that evaluates the position of a piece and gives it a value
+     *
      * @pre 1 <= pieceType <= 4
      */
     int positionalEvaluation(DraughtsState state, int pieceType, int pieceNumber) {
@@ -293,17 +314,32 @@ public class DraughtBot extends DraughtsPlayer {
         }
         int tempoScore = rowNr * ROWMULTIPLIER;
         posEval += tempoScore;
-        
+
         int defenseBonus = 0;
         // give defense bonus if leaving pieces to defend backrow, except for corner pieces
-        if (rowNr == 1 && !(pieceNumber == 46 || pieceNumber == 5)) {
-            defenseBonus += DEFENSEBONUS;
+        if (rowNr == 1) {
+            if (pieceNumber == 46 || pieceNumber == 5 || pieceNumber == 1 || pieceNumber == 50) {
+                defenseBonus += CORNERBACKRANK;
+            } else {
+                defenseBonus += MIDDLEBACKRANK;
+            }
         }
         posEval += defenseBonus;
         
+        int doubleCornerBonus = 0;
+        if (pieceNumber == 45 || pieceNumber == 50 || pieceNumber == 1 || pieceNumber == 6) {
+            doubleCornerBonus += DOUBLECORNER;
+        }
+        posEval += doubleCornerBonus;
+
+        //TODO: balance method by taking difference of pieces on left side and right side
         return posEval;
     }
 
+    /**
+     * TODO: a method for calculating runaway pieces (see
+     * https://github.com/olsson/checkers/blob/master/eval.c)
+     */
     /**
      * A method implementing iterative deepening which then calls AlphaBeta
      */
@@ -316,6 +352,7 @@ public class DraughtBot extends DraughtsPlayer {
             System.err.println("at depth: " + depth + " the best value is: " + value);
             System.err.println("bestMoves: " + node.getBestMoves());
             node.setBestMove(node.getBestMoveCurrentDepth());
+            node.setBestValue(value);
         }
         return value;
     }
