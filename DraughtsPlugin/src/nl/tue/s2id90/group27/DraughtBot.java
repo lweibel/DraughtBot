@@ -29,14 +29,6 @@ public class DraughtBot extends DraughtsPlayer {
     final static int CORNERBACKRANK = 150; //value for corner in the back, less valuable as others
     final static int MIDDLEBACKRANK = 250; //value for middle in the backrank
     final static int DOUBLECORNER = 75; //play from the double corner (e.g. field 45 and 50)
-    //if 1 piece on backrank, then middle pieces value 4, corner pieces value 2
-    // (47-49) = (47-49-50) - 2
-    // (47-48-49) = (47-49-50) = 47-48-49-50 - 2
-    // (47-48) = (47-48-49) - 4
-
-    final static int[] BACKRANK = {4, 12, 18, 20, 20}; //1 piece left to defend backrank (backrank does not include corner piece)
-    //then 4 points, all 4 pieces left to defend then 20 points.
-//    final static int DEFENSEBONUS = 1400; //bonus for leaving some at the first row
 
     /**
      * boolean that indicates that the GUI asked the player to stop thinking.
@@ -263,8 +255,6 @@ public class DraughtBot extends DraughtsPlayer {
         int[] pieces = state.getPieces(); //obtain pieces array
         int whiteScore = 0;
         int blackScore = 0;
-//        int whiteCount = 0;
-//        int blackCount = 0;
         for (int i = 1; i <= 50; i++) {
             int piece = pieces[i];
             if (piece == 1) {
@@ -280,20 +270,11 @@ public class DraughtBot extends DraughtsPlayer {
             }
         }
 
-        //#TODO: not sure if this difference is just for material difference or also positional/strategic
         int difference = whiteScore - blackScore; //we get the difference between the two,
         //so that we maximize whiteCount and minimize blackCount in order to get a higher value.
 
-        /**
-         * normally returning the difference would seem enough, however, then
-         * sometimes arbitrary sacrifices are made (1 for 1 exchange) where
-         * other choices could have been made that did not require such an
-         * exchange hence we also add the total count of white pieces to stress
-         * we want to preserve as many pieces as possible
-         *
-         */
-        //TODO: add "whiteCount +" to return statement
-        //Currently does not seem to be an improvement probably due to implicit assumptions on 1 for 1 exchanges.
+        //TODO: add "whiteCount +" to return statement, which currently does not 
+        //seem to be an improvement probably due to implicit assumptions on 1 for 1 exchanges.
         return difference;
     }
 
