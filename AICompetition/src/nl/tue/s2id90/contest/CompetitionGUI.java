@@ -471,7 +471,7 @@ public class CompetitionGUI<Competitor extends Player<M,S>, P extends PlayerProv
         final Timer timer = new Timer();
         final int maxTime = timeSlider.getValue();
         searchTask = new TimedSearchTask<M, Long, S>(currentPlayer, gs, maxTime) {
-            private long MIN_DELAY=1500; // minimum time for a move 1500 milliseconds
+            private long MIN_DELAY=100; // minimum time for a move 1500 milliseconds
             @Override
             public void done(M m) {
                 timer.stop();
