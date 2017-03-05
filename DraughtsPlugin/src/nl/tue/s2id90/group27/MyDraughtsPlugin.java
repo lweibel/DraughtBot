@@ -26,7 +26,7 @@ public class MyDraughtsPlugin extends DraughtsPlayerProvider implements Draughts
                 new BuggyPlayer(),
                 new DraughtBotV1(5),
                 new DraughtBotV2(20),
-                new DraughtBotV3(20)
+                new DraughtBotV3(15)
         );
     }
 }

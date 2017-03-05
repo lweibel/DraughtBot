@@ -24,6 +24,6 @@ public abstract class TimedSearchTask<M, U, S extends GameState<M>>
                     TimedSearchTask.this.stop();
             }            
         };
-        timer.schedule(task, timeLimitInSeconds*1000);        
+        timer.schedule(task, timeLimitInSeconds*100);        
     }    
 }

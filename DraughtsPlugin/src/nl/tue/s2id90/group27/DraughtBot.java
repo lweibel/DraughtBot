@@ -20,6 +20,13 @@ public class DraughtBot extends DraughtsPlayer {
 
     private int bestValue = 0;
     int maxSearchDepth;
+    
+    final static int NRCOLUMNS = 5;
+    final static int NRROWS = 10;
+    final static int KING = 3400; //value of king
+    final static int PIECE = 1000; //value of normal piece
+    final static int ROWMULTIPLIER =  200; //for taking tempi into account 
+    final static int DEFENSEBONUS = 1400; //bonus for leaving some at the first row
 
     /**
      * boolean that indicates that the GUI asked the player to stop thinking.
@@ -235,16 +242,66 @@ public class DraughtBot extends DraughtsPlayer {
      */
     int evaluate(DraughtsState state) {
         int[] pieces = state.getPieces(); //obtain pieces array
-        //int color; //the color of checkers that the bot controls
-        int[] tileCounts = new int[5]; //for each i in this array, it contains the number
-        //of tiles that have the enum value i (e.g. int[0] indicates number of empty fields)
+        int whiteScore =0;
+        int blackScore = 0;
+//        int whiteCount = 0;
+//        int blackCount = 0;
         for (int i = 1; i <= 50; i++) {
             int piece = pieces[i];
-            tileCounts[piece]++;
+            if (piece == 1) {
+                whiteScore += positionalEvaluation(state, piece, i);
+                whiteScore += PIECE;
+            }  else if (piece == 3) {
+                whiteScore += KING;
+            } else if (piece == 2) {
+                blackScore += positionalEvaluation(state, piece, i);
+                blackScore += PIECE;
+            } else if (piece == 4) {
+                blackScore += KING;
+            }
         }
-
-        //3*no. of kings cuz king worth 3 pieces
-        return (tileCounts[1] + 3 * tileCounts[3]) - (tileCounts[2] + 3 * tileCounts[4]);
+        
+        //#TODO: not sure if this difference is just for material difference or also positional/strategic
+        int difference = whiteScore - blackScore; //we get the difference between the two,
+        //so that we maximize whiteCount and minimize blackCount in order to get a higher value.
+        
+        /** normally returning the difference would seem
+         * enough, however, then sometimes arbitrary sacrifices are made (1 for 1 exchange) 
+         * where other choices could have been made that did not require such an exchange
+         * hence we also add the total count of white pieces to stress we want to
+         * preserve as many pieces as possible
+         **/
+        
+        //TODO: add "whiteCount +" to return statement
+        //Currently does not seem to be an improvement probably due to implicit assumptions on 1 for 1 exchanges.
+        return  difference;
+    }
+    
+    /**
+     * A method that evaluates the position of a piece and gives it a value
+     * @pre 1 <= pieceType <= 4
+     */
+    int positionalEvaluation(DraughtsState state, int pieceType, int pieceNumber) {
+        if (pieceType == 2 || pieceType == 4) {
+            return 0; //for now no extra yet for kings, they already have a higher value
+        }
+        int posEval = 0;
+        int rowNr = (int) Math.ceil((double) pieceNumber / NRCOLUMNS); //correct if piece is black, 
+        //but if piece is white this needs to be reversed
+        if (pieceType == 1) {
+            rowNr = NRROWS + 1 - rowNr;
+        }
+        int tempoScore = rowNr * ROWMULTIPLIER;
+        posEval += tempoScore;
+        
+        int defenseBonus = 0;
+        // give defense bonus if leaving pieces to defend backrow, except for corner pieces
+        if (rowNr == 1 && !(pieceNumber == 46 || pieceNumber == 5)) {
+            defenseBonus += DEFENSEBONUS;
+        }
+        posEval += defenseBonus;
+        
+        return posEval;
     }
 
     /**
