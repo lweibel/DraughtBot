@@ -1,6 +1,7 @@
 package nl.tue.s2id90.group27;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import nl.tue.s2id90.draughts.DraughtsState;
@@ -53,6 +54,20 @@ public class DraughtsNode {
     
     public Map<Integer, Move> getBestMoves() {
         return moves;
+    }
+    
+    public void resetBestMoves() {
+        this.moves =  new HashMap<Integer, Move>();
+    }
+    
+    //To enhance readability we reverse the map
+    public String getBestMovesString() {
+        Map<Integer, Move> newMap = new HashMap<Integer, Move>();
+        int maxDepth = Collections.max(this.moves.keySet());
+        for (Integer key: this.moves.keySet()) {
+            newMap.put(maxDepth - key, this.moves.get(key));
+        }
+        return newMap.toString();
     }
     
     public void setBestMoveDepth(Move m, int i) {

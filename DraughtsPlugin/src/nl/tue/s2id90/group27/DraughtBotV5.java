@@ -13,13 +13,11 @@ import org10x10.dam.game.Move;
 
 /**
  * Implementation of the DraughtsPlayer interface.
- * This version has the value weights for TEMPO advancement (so moving forward in rows),
- * at the same time weights for not moving also the back pieces (because just tempo advancement leaves backline undefended)
- * where the corner pieces are less good than the center pieces. And the double corner
- * is also of importance, because in general that is a corner which is valued.
+ * Both quiescence and random move ordering implemented
+ *
  * @author Luca Weibel and Michiel Verburg
  */
-public class DraughtBotV4 extends DraughtsPlayer {
+public class DraughtBotV5 extends DraughtsPlayer {
 
     private int bestValue = 0;
     int maxSearchDepth;
@@ -32,13 +30,16 @@ public class DraughtBotV4 extends DraughtsPlayer {
     final static int CORNERBACKRANK = 150; //value for corner in the back, less valuable as others
     final static int MIDDLEBACKRANK = 250; //value for middle in the backrank
     final static int DOUBLECORNER = 75; //play from the double corner (e.g. field 45 and 50)
+    final static int SIDEPIECE = -100; //minus points for pieces on the left or right side because they can be blocked
+
+    final static int LATEMIDGAME = 20; //after less than 20 pieces are left, center pieces become more valuable
 
     /**
      * boolean that indicates that the GUI asked the player to stop thinking.
      */
     private boolean stopped;
 
-    public DraughtBotV4(int maxSearchDepth) {
+    public DraughtBotV5(int maxSearchDepth) {
         super("best.png");
         this.maxSearchDepth = maxSearchDepth;
     }
@@ -166,9 +167,14 @@ public class DraughtBotV4 extends DraughtsPlayer {
             throw new AIStoppedException();
         }
         DraughtsState state = node.getState();
-        if (depth <= 0 || state.isEndState()) {
+        if (state.isEndState()) {
             return evaluate(state);
         }
+        //quiescence by continuing if last ply's move is a capture
+        if (depth <= 0 && !state.getMoves().get(0).isCapture()) {
+            return evaluate(state);
+        }
+
         // move ordering
         List<Move> movesToCheck;
         if (isFirstRun && node.getBestMove() != null) {
@@ -177,7 +183,7 @@ public class DraughtBotV4 extends DraughtsPlayer {
             movesToCheck = new ArrayList<>();
             movesToCheck.add(node.getBestMove());
             List<Move> moves = state.getMoves();
-//            Collections.shuffle(moves);
+            Collections.shuffle(moves);
             for (Move m : moves) {
                 if (!m.equals(node.getBestMove())) {
                     movesToCheck.add(m);
@@ -186,6 +192,7 @@ public class DraughtBotV4 extends DraughtsPlayer {
             //System.out.println("After sort: " + movesToCheck);
         } else {
             movesToCheck = state.getMoves();
+            Collections.shuffle(movesToCheck);
         }
         // end of move ordering
         if (isMaximizing) {
@@ -200,13 +207,12 @@ public class DraughtBotV4 extends DraughtsPlayer {
                     /**
                      * debugging info start *
                      */
-                    if (depth > 1) {
-                        Map<Integer, Move> bests = mNode.getBestMoves();
-                        for (int i = (maxSearchDepth + 1) - depth; i < maxSearchDepth; i++) {
-                            node.setBestMoveDepth(bests.get(i), i);
-                        }
+                    Map<Integer, Move> bests = mNode.getBestMoves();
+                    node.resetBestMoves();
+                    for (Integer key : bests.keySet()) {
+                        node.setBestMoveDepth(bests.get(key), key);
                     }
-                    node.setBestMoveDepth(m, maxSearchDepth - depth);
+                    node.setBestMoveDepth(m, depth);
                     /**
                      * debugging info end *
                      */
@@ -230,13 +236,12 @@ public class DraughtBotV4 extends DraughtsPlayer {
                     /**
                      * debugging info start *
                      */
-                    if (depth > 1) {
-                        Map<Integer, Move> bests = mNode.getBestMoves();
-                        for (int i = (maxSearchDepth + 1) - depth; i < maxSearchDepth; i++) {
-                            node.setBestMoveDepth(bests.get(i), i);
-                        }
+                    Map<Integer, Move> bests = mNode.getBestMoves();
+                    node.resetBestMoves();
+                    for (Integer key : bests.keySet()) {
+                        node.setBestMoveDepth(bests.get(key), key);
                     }
-                    node.setBestMoveDepth(m, maxSearchDepth - depth);
+                    node.setBestMoveDepth(m, depth);
                     /**
                      * debugging info end *
                      */
@@ -255,25 +260,30 @@ public class DraughtBotV4 extends DraughtsPlayer {
     /**
      * A method that evaluates the given state.
      */
-    int evaluate(DraughtsState state) {
+    int evaluate(DraughtsState state
+    ) {
         int[] pieces = state.getPieces(); //obtain pieces array
+        int[] tileCounts = new int[5]; //for each i in this array, it contains the number
+        //of tiles that have the enum value i (e.g. int[0] indicates number of empty fields)
+
+        for (int i = 1; i <= 50; i++) {
+            int piece = pieces[i];
+            tileCounts[piece]++;
+        }
+        int totalPieces = tileCounts[1] + tileCounts[2] + tileCounts[3] + tileCounts[4]; //total number of pieces remaining
         int whiteScore = 0;
         int blackScore = 0;
         for (int i = 1; i <= 50; i++) {
             int piece = pieces[i];
             if (piece == 1) {
-                whiteScore += positionalEvaluation(state, piece, i);
-                whiteScore += PIECE;
-            } else if (piece == 3) {
-                whiteScore += KING;
+                whiteScore += positionalEvaluation(state, piece, i, totalPieces);
             } else if (piece == 2) {
-                blackScore += positionalEvaluation(state, piece, i);
-                blackScore += PIECE;
-            } else if (piece == 4) {
-                blackScore += KING;
+                blackScore += positionalEvaluation(state, piece, i, totalPieces);
             }
         }
 
+        whiteScore += PIECE * tileCounts[1] + KING * tileCounts[3];
+        blackScore += PIECE * tileCounts[2] + KING * tileCounts[4];
         int difference = whiteScore - blackScore; //we get the difference between the two,
         //so that we maximize whiteCount and minimize blackCount in order to get a higher value.
 
@@ -287,11 +297,22 @@ public class DraughtBotV4 extends DraughtsPlayer {
      *
      * @pre 1 <= pieceType <= 4
      */
-    int positionalEvaluation(DraughtsState state, int pieceType, int pieceNumber) {
+    int positionalEvaluation(DraughtsState state, int pieceType, int pieceNumber, int totalPieces
+    ) {
         if (pieceType == 2 || pieceType == 4) {
             return 0; //for now no extra yet for kings, they already have a higher value
         }
         int posEval = 0;
+
+        int centerMinus = 0; //minus points for having non-center pieces
+        if (totalPieces < LATEMIDGAME) {
+            if (pieceNumber % 10 == 6 || pieceNumber % 10 == 5) {
+                centerMinus += SIDEPIECE;
+            }
+
+        }
+//        posEval += centerMinus;
+
         int rowNr = (int) Math.ceil((double) pieceNumber / NRCOLUMNS); //correct if piece is black, 
         //but if piece is white this needs to be reversed
         if (pieceType == 1) {
@@ -310,7 +331,7 @@ public class DraughtBotV4 extends DraughtsPlayer {
             }
         }
         posEval += defenseBonus;
-        
+
         int doubleCornerBonus = 0;
         if (pieceNumber == 45 || pieceNumber == 50 || pieceNumber == 1 || pieceNumber == 6) {
             doubleCornerBonus += DOUBLECORNER;
