@@ -27,7 +27,9 @@ public class MyDraughtsPlugin extends DraughtsPlayerProvider implements Draughts
                 new DraughtBotV1(5),
                 new DraughtBotV2(20),
                 new DraughtBotV3(20),
-                new DraughtBotV4(20)
+                new DraughtBotV4(20),
+                new DraughtBotV5(20),
+                new DraughtBotV6(20)
                 
         );
     }
