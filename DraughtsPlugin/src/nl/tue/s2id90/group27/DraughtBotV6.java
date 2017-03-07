@@ -344,7 +344,7 @@ public class DraughtBotV6 extends DraughtsPlayer {
                     pieceNumber == 38 || pieceNumber == 39) {
                 centerBonus += CENTERCONTROL[phase];
             }
-        } else if (pieceType == 3) {
+        } else if (pieceType == 2) {
             if (pieceNumber == 23) { 
                 centerBonus += 3*CENTERCONTROL[phase]; //this one is most important
             } else if (pieceNumber == 22 || pieceNumber == 18 || pieceNumber == 19) {
@@ -367,7 +367,7 @@ public class DraughtBotV6 extends DraughtsPlayer {
         
         //golden piece bonus (center backrank)
         int golden = 0;
-        if ((pieceType == 1 && pieceNumber == 48) || (pieceType == 3 && pieceNumber ==3)) {
+        if ((pieceType == 1 && pieceNumber == 48) || (pieceType == 2 && pieceNumber ==3)) {
             golden += GOLDENPIECE[phase];
         }
         posEval += golden;
